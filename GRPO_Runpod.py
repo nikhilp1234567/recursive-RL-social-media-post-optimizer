@@ -7,6 +7,7 @@ from transformers import TrainingArguments
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+from reward_model import RewardModelTrainer, create_grpo_reward_function
 
 def train_and_generate_post(
     model_name="MoonshotAI/Kimi-K2-Instruct",
@@ -14,7 +15,8 @@ def train_and_generate_post(
     max_seq_length=2048,
     dtype=None,
     load_in_4bit=True,
-    custom_prompt=None
+    custom_prompt=None,
+    use_reward_model=True
 ):
     """
     Fine-tune a language model and generate a response to a prompt.
@@ -26,6 +28,7 @@ def train_and_generate_post(
         dtype: Data type for the model (None for auto-detection)
         load_in_4bit (bool): Whether to load model in 4-bit
         custom_prompt (str): Custom prompt for generation (if None, will prompt user)
+        use_reward_model (bool): Whether to use trained reward model or dummy function
     
     Returns:
         str: Generated response from the fine-tuned model
@@ -83,29 +86,42 @@ def train_and_generate_post(
     formatted_dataset = dataset.map(formatting_prompts_func, batched=True)
     formatted_dataset_grpo = dataset.map(formatting_prompt_grpo)
 
-    # 4. Set a reward function for GRPO (simple length-based reward)
-    # Initialize BERT model for similarity calculation
-    bert_model = SentenceTransformer('all-MiniLM-L6-v2')
-    
-    def calculate_bert_similarity(text1, text2):
-        """Calculate cosine similarity between two texts using BERT embeddings."""
-        embeddings = bert_model.encode([text1, text2])
-        similarity = cosine_similarity([embeddings[0]], [embeddings[1]])[0][0]
-        return float(similarity)
-    
-    def reward_function(completions, answer, **kwargs):
-        rewards = []
-        post_reward = kwargs["views"] + (2 * kwargs["likes"]) + (3 * kwargs["reposts"])
-        for completion in completions:
-            comp = completion[0]["content"]
+    # 4. Set up reward function for GRPO
+    if use_reward_model:
+        print("Training reward model...")
+        reward_trainer = RewardModelTrainer(freeze_encoder=True)
+        reward_trainer.train(dataset_path, epochs=5)
+        reward_trainer.save_model()
+        
+        reward_function = create_grpo_reward_function(reward_trainer)
+        print("Reward model training complete. Using trained reward model for GRPO.")
+    else:
+        # Fallback to dummy reward function
+        # Initialize BERT model for similarity calculation
+        bert_model = SentenceTransformer('all-MiniLM-L6-v2')
+        
+        def calculate_bert_similarity(text1, text2):
+            """Calculate cosine similarity between two texts using BERT embeddings."""
+            embeddings = bert_model.encode([text1, text2])
+            similarity = cosine_similarity([embeddings[0]], [embeddings[1]])[0][0]
+            return float(similarity)
+        
+        def reward_function_dummy(completions, answer, **kwargs):
+            rewards = []
+            post_reward = kwargs["views"] + (2 * kwargs["likes"]) + (3 * kwargs["reposts"])
+            for completion in completions:
+                comp = completion[0]["content"]
 
-            # get BERT similarity score between comp and answer
-            similarity_score = calculate_bert_similarity(comp, answer)
-            rewards.append(similarity_score * post_reward)
+                # get BERT similarity score between comp and answer
+                similarity_score = calculate_bert_similarity(comp, answer)
+                rewards.append(similarity_score * post_reward)
 
-        return rewards
+            return rewards
+        
+        reward_function = reward_function_dummy
+        print("Using dummy reward function for GRPO.")
     
-    # 4. Set up and run the trainer
+    # 5. Set up and run the trainer
     sft_trainer = SFTTrainer(
         model=model,
         tokenizer=tokenizer,
@@ -149,20 +165,20 @@ def train_and_generate_post(
         ),
     )
 
-    # 5. Start the training process!
-    trainer = grpo_trainer  # Assigning GRPO trainer to a variable for clarity
+    # 6. Start the training process!
+    trainer = grpo_trainer
     
     print("Starting training...")
     trainer.train()
 
-    # 6. Save the fine-tuned model (LoRA adapters)
+    # 7. Save the fine-tuned model (LoRA adapters)
     date_str = datetime.date.today().isoformat()
     save_dir = f"lora_model_{date_str}"
     model.save_pretrained(save_dir)
     tokenizer.save_pretrained(save_dir)
     print("Fine-tuning complete. Model saved to 'lora_model' directory.")
 
-    # 7. Run inference with the fine-tuned model
+    # 8. Run inference with the fine-tuned model
     # Load the base model and tokenizer
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=model_name,
@@ -179,7 +195,7 @@ def train_and_generate_post(
     
     # Generate response
     if custom_prompt is None:
-        custom_prompt = input('Enter your prompt for the model: ')
+        custom_prompt = input('Produce an engaging post for twitter')
     
     alpaca_prompt = f"### Instruction:\n{custom_prompt}\n\n### Response:\n"
     
