@@ -3,3 +3,7 @@ torch
 transformers
 sentence-transformers
 scikit-learn
+datasets
+unsloth
+trl
+numpy
