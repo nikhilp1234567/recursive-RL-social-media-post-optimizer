@@ -33,8 +33,10 @@ def train_and_generate_post(
     Returns:
         str: Generated response from the fine-tuned model
     """
-    
-    # 1. Load the pre-trained model with Unsloth
+
+    # === 1. Load the pre-trained model with Unsloth ===
+    # This loads a HuggingFace model and tokenizer using Unsloth's FastLanguageModel,
+    # which is optimized for fast fine-tuning and inference.
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=model_name,
         max_seq_length=max_seq_length,
@@ -42,24 +44,27 @@ def train_and_generate_post(
         load_in_4bit=load_in_4bit,
     )
 
-    # 2. Prepare the model for fine-tuning
+    # === 2. Prepare the model for parameter-efficient fine-tuning (PEFT) ===
+    # This wraps the model with LoRA adapters, which allow efficient fine-tuning
+    # by only training a small number of additional parameters.
     model = FastLanguageModel.get_peft_model(
         model,
-        r=16,
+        r=16,  # LoRA rank
         target_modules=[
             "q_proj", "k_proj", "v_proj", "o_proj",
             "gate_proj", "up_proj", "down_proj",
             "mlp.o_proj", "mlp.gate_proj", "mlp.up_proj",
-        ],
-        lora_alpha=16,
-        lora_dropout=0,
-        bias="none",
-        use_gradient_checkpointing="unsloth",
-        random_state=3407,
-        use_rslora=False,
+        ],  # Which modules to apply LoRA to
+        lora_alpha=16,  # LoRA scaling factor
+        lora_dropout=0,  # No dropout for LoRA
+        bias="none",  # No bias adaptation
+        use_gradient_checkpointing="unsloth",  # Save memory during training
+        random_state=3407,  # For reproducibility
+        use_rslora=False,  # Don't use random sign LoRA
     )
 
-    # 3. Load and format your dataset
+    # === 3. Load and format your dataset ===
+    # Try to load the dataset from a JSONL file using HuggingFace Datasets.
     try:
         dataset = load_dataset("json", data_files=dataset_path, split="train")
     except FileNotFoundError:
@@ -67,14 +72,17 @@ def train_and_generate_post(
         print("Please make sure the file is in the same directory as this script.")
         return None
 
+    # Helper function to format data for SFT (Supervised Fine-Tuning)
     def formatting_prompts_func(examples):
         prompts = examples["prompt"]
         posts = examples["post"]
         texts = []
         for prompt, post in zip(prompts, posts):
+            # Format as instruction-following prompt/response
             texts.append(f"### Instruction:\n{prompt}\n\n### Response:\n{post}{tokenizer.eos_token}")
         return {"text": texts}
     
+    # Helper function to format data for GRPO (Reinforcement Learning)
     def formatting_prompt_grpo(example):
         return {
             "prompt": [
@@ -83,21 +91,23 @@ def train_and_generate_post(
             "answer": example["post"]
         }
     
+    # Apply formatting to the dataset for both SFT and GRPO
     formatted_dataset = dataset.map(formatting_prompts_func, batched=True)
     formatted_dataset_grpo = dataset.map(formatting_prompt_grpo)
 
-    # 4. Set up reward function for GRPO
+    # === 4. Set up reward function for GRPO ===
     if use_reward_model:
+        # If using a learned reward model, train it on the dataset
         print("Training reward model...")
         reward_trainer = RewardModelTrainer(freeze_encoder=True)
         reward_trainer.train(dataset_path, epochs=5)
         reward_trainer.save_model()
         
+        # Create a reward function that uses the trained reward model
         reward_function = create_grpo_reward_function(reward_trainer)
         print("Reward model training complete. Using trained reward model for GRPO.")
     else:
-        # Fallback to dummy reward function
-        # Initialize BERT model for similarity calculation
+        # If not using a reward model, use a dummy reward function based on BERT similarity and post metrics
         bert_model = SentenceTransformer('all-MiniLM-L6-v2')
         
         def calculate_bert_similarity(text1, text2):
@@ -107,6 +117,7 @@ def train_and_generate_post(
             return float(similarity)
         
         def reward_function_dummy(completions, answer, **kwargs):
+            # Calculate a reward for each completion based on similarity and post metrics
             rewards = []
             post_reward = kwargs["views"] + (2 * kwargs["likes"]) + (3 * kwargs["reposts"])
             for completion in completions:
@@ -121,7 +132,9 @@ def train_and_generate_post(
         reward_function = reward_function_dummy
         print("Using dummy reward function for GRPO.")
     
-    # 5. Set up and run the trainer
+    # === 5. Set up and run the trainers ===
+
+    # SFTTrainer: Supervised fine-tuning (not used for training here, but can be used for comparison)
     sft_trainer = SFTTrainer(
         model=model,
         tokenizer=tokenizer,
@@ -142,13 +155,14 @@ def train_and_generate_post(
         ),
     )
 
+    # GRPOTrainer: Reinforcement learning with the reward function
     grpo_trainer = GRPOTrainer(
         model=model,
         processing_class=tokenizer,
         train_dataset=formatted_dataset_grpo,
         reward_funcs=reward_function,
         args=GRPOConfig(
-            num_generations=8,
+            num_generations=8,  # How many completions to sample per prompt
             learning_rate=2e-5,
             adam_beta1=0.9,
             adam_beta2=0.99,
@@ -165,21 +179,24 @@ def train_and_generate_post(
         ),
     )
 
-    # 6. Start the training process!
+    # === 6. Start the training process! ===
+    # We use the GRPO trainer for RL fine-tuning.
     trainer = grpo_trainer
     
     print("Starting training...")
     trainer.train()
 
-    # 7. Save the fine-tuned model (LoRA adapters)
+    # === 7. Save the fine-tuned model (LoRA adapters) ===
+    # Save the model and tokenizer to a directory named with today's date
     date_str = datetime.date.today().isoformat()
     save_dir = f"lora_model_{date_str}"
     model.save_pretrained(save_dir)
     tokenizer.save_pretrained(save_dir)
     print("Fine-tuning complete. Model saved to 'lora_model' directory.")
 
-    # 8. Run inference with the fine-tuned model
-    # Load the base model and tokenizer
+    # === 8. Run inference with the fine-tuned model ===
+
+    # Reload the base model and tokenizer (to ensure a clean state)
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=model_name,
         max_seq_length=max_seq_length,
@@ -187,22 +204,25 @@ def train_and_generate_post(
         load_in_4bit=load_in_4bit,
     )
     
-    # Load the LoRA adapters from the saved directory
+    # Load the LoRA adapters from the saved directory to apply the fine-tuned weights
     model = FastLanguageModel.get_peft_model(
         model,
         save_dir,
     )
     
-    # Generate response
+    # If no custom prompt is provided, ask the user for one
     if custom_prompt is None:
         custom_prompt = input('Produce an engaging post for twitter')
     
+    # Format the prompt in Alpaca-style instruction format
     alpaca_prompt = f"### Instruction:\n{custom_prompt}\n\n### Response:\n"
     
+    # Tokenize the prompt and move tensors to GPU
     inputs = tokenizer(
         [alpaca_prompt], return_tensors="pt"
     ).to("cuda")
 
+    # Generate a response from the model
     outputs = model.generate(**inputs, max_new_tokens=512, use_cache=True)
     generated_response = tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
     

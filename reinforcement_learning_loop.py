@@ -1,13 +1,13 @@
 import json
-import requests
+import requests 
 import time
 from GRPO_Runpod import train_and_generate_post
-
+from twitter_functions import post_to_x   
 
 # Path to your GRPO training dataset file
 DATASET_FILE = "data.jsonl"
 
-def append_to_dataset(new_post, views=0, likes=0, reposts=0, prompt="Produce an engaging post for twitter"):
+def append_to_dataset(new_post, views=0, likes=0, reposts=0, prompt="failed to gather"):
     """
     Append a new post to the dataset file.
     
@@ -115,13 +115,14 @@ def run_rl_workflow():
 
         # Step 2: Train the model and generate a new post
         print("Training model and generating new post...")
-        custom_prompt = "Produce an engaging post for twitter"
+        custom_prompt = "You are the social media post generation engine for the twitter account of a company focussed on modelling the ecosystem services of nature, to highlight the return on investment of nature based infastructure for climate risk mitigation and adaptation. Produce an engaging post, ensuring you adhere to twitter's content guidelines."
         
         try:
             # This returns the generated text directly, not an HTTP response
             generated_response = train_and_generate_post(
                 dataset_path=DATASET_FILE, 
-                custom_prompt=custom_prompt
+                custom_prompt=custom_prompt,
+                use_reward_model=True
             )
             
             # Step 3: Extract the actual post content from the generated response
@@ -133,6 +134,13 @@ def run_rl_workflow():
                 print(new_post)
                 print("=============================")
                 
+                # Step 3b: Post the new post to X (non-fatal)
+                try:
+                    tweet_id = post_to_x(new_post)
+                    print(f"Posted to X successfully. tweet_id={tweet_id}")
+                except Exception as e:
+                    print(f"Warning: failed to post to X: {e}. Continuing without posting.")
+
                 # Step 4: Add the new post to the dataset with default metrics
                 append_to_dataset(new_post, prompt=custom_prompt)
                 

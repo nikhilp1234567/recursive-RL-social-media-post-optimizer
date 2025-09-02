@@ -1,4 +1,4 @@
-requests>=2.31.0
+requests
 torch
 transformers
 sentence-transformers
@@ -7,3 +7,5 @@ datasets
 unsloth
 trl
 numpy
+tweepy
+python-dotenv
