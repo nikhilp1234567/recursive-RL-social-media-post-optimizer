@@ -2,7 +2,7 @@ import json
 import requests 
 import time
 from GRPO_Runpod import train_and_generate_post
-from twitter_functions import post_to_x
+# from twitter_functions import post_to_x
 from helper_functions import append_to_dataset, update_post_metrics, extract_response_from_generation, DATASET_FILE, interactive_metric_update
 
 def run_rl_workflow():
