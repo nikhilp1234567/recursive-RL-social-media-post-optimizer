@@ -88,3 +88,45 @@ def extract_response_from_generation(generated_text, prompt):
         if generated_text.startswith(prompt):
             return generated_text[len(prompt):].strip()
         return generated_text.strip()
+
+def interactive_metric_update():
+    """
+    Interactive function to update metrics for existing posts.
+    """
+    print("\n--- Update Post Metrics ---")
+    
+    # Load and display recent posts
+    dataset = []
+    with open(DATASET_FILE, 'r') as f:
+        for line in f:
+            if line.strip():
+                dataset.append(json.loads(line.strip()))
+    
+    if not dataset:
+        print("No posts found in dataset.")
+        return
+    
+    print("Recent posts:")
+    for i, entry in enumerate(dataset[-5:], 1):  # Show last 5 posts
+        print(f"{i}. {entry['post'][:100]}...")
+        print(f"   Current metrics - Views: {entry['views']}, Likes: {entry['likes']}, Reposts: {entry['reposts']}")
+    
+    try:
+        choice = int(input(f"\nEnter post number to update (1-{min(5, len(dataset))}): ")) - 1
+        if choice < 0 or choice >= min(5, len(dataset)):
+            print("Invalid choice.")
+            return
+        
+        selected_post = dataset[-(5-choice)]
+        
+        print(f"\nSelected post: {selected_post['post']}")
+        
+        views = int(input("Enter new views count: "))
+        likes = int(input("Enter new likes count: "))
+        reposts = int(input("Enter new reposts count: "))
+        
+        update_post_metrics(selected_post['post'], views, likes, reposts)
+        
+    except (ValueError, IndexError) as e:
+        print(f"Error: {e}")
+        print("Please enter valid numbers.")
