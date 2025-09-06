@@ -27,7 +27,7 @@ def run_rl_workflow():
         # Step 2: Train the model and generate a new post
         print("Training model and generating new post...")
         custom_prompt = "You are the social media post generation engine for the twitter account of a company focussed on modelling the ecosystem services of nature, to highlight the return on investment of nature based infastructure for climate risk mitigation and adaptation. Produce an engaging post, ensuring you adhere to twitter's content guidelines."
-        
+        # custom_prompt = "You are the social media post generation engine for the twitter account of a company focussed on modelling the ecosystem services of nature, to highlight the return on investment of nature based infastructure for climate risk mitigation and adaptation. Produce an engaging post, ensuring you adhere to twitter's content guidelines. The post must be within 280 characters."
         try:
             # This returns the generated text directly, not an HTTP response
             generated_response = train_and_generate_post(
