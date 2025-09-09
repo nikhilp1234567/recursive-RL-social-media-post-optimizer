@@ -19,4 +19,4 @@ def fetch_metrics_x(tweet_id: str) -> dict:
     client = get_x_client()
     resp = client.get_tweet(id=tweet_id, tweet_fields=["public_metrics"])
     m = resp.data.public_metrics
-    return {"views": m.get("impression_count", 0), "likes": m.get("like_count", 0), "reposts": m.get("retweet_count", 0)}
+    return {"quotes": m.get("impression_count", 0), "likes": m.get("like_count", 0), "reposts": m.get("retweet_count", 0)}
