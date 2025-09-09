@@ -136,8 +136,8 @@ class RewardModelTrainer:
                 data = json.loads(line.strip())
                 post = data['post']
 
-                # A reward that combines views, likes, reposts
-                reward = data['views'] + (2 * data['likes']) + (3 * data['reposts'])
+                # A reward that combines quotes, likes, reposts
+                reward = data['quotes'] + (2 * data['likes']) + (3 * data['reposts'])
             
                 posts.append(post)
                 rewards.append(reward)
