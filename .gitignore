@@ -1,7 +1,7 @@
 .venv/
 .env
 unsloth_compiled_cache/
-reward_model_2025-09-06/
+reward_model*
 outputs/
-lora_model_2025-09-06/
+lora_model*
 __pycache__/

@@ -137,7 +137,7 @@ class RewardModelTrainer:
                 post = data['post']
 
                 # A reward that combines quotes, likes, reposts
-                reward = data['quotes'] + (2 * data['likes']) + (3 * data['reposts'])
+                reward = data['views'] + (2 * data['likes']) + (3 * data['reposts'])
             
                 posts.append(post)
                 rewards.append(reward)

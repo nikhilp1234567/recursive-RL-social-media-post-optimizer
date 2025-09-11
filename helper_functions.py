@@ -24,7 +24,7 @@ def append_to_dataset(new_post, views=0, likes=0, reposts=0, prompt="failed to g
     
     # Append to the JSONL file
     with open(DATASET_FILE, 'a') as f:
-        f.write(json.dumps(new_entry) + '\n')
+        f.write('\n' + json.dumps(new_entry))
     
     print(f"New post added to dataset: {DATASET_FILE}")
 
@@ -61,7 +61,7 @@ def update_post_metrics(post_content, views, likes, reposts):
         # Rewrite the file with updated data
         with open(DATASET_FILE, 'w') as f:
             for entry in dataset:
-                f.write(json.dumps(entry) + '\n')
+                f.write('\n' + json.dumps(entry))
         print("Dataset file updated successfully.")
     else:
         print("Post not found in dataset. No updates made.")
@@ -95,6 +95,95 @@ def extract_response_from_generation(generated_text, prompt):
             return generated_text[len(prompt):].strip()
         return generated_text.strip()
         
+def extract_response_from_generation_robust(generated_text, prompt):
+    """
+    Robust extraction of the actual response from the generated text by removing 
+    the prompt, reasoning, metadata, and other extraneous content.
+    
+    Args:
+        generated_text (str): The full generated text
+        prompt (str): The original prompt
+    
+    Returns:
+        str: The extracted clean response
+    """
+    import re
+    
+    # Start with the full generated text
+    response_part = generated_text
+    
+    # Keep splitting on Final Answer delimiters until no more exist
+    final_answer_patterns = ["### Final Answer:", "**Final Answer:**", "### Response:", "### Answer:"]
+    
+    for pattern in final_answer_patterns:
+        while pattern in response_part:
+            response_part = response_part.split(pattern)[-1].strip()
+    
+    # If we still have the original text, try to remove the prompt from the beginning
+    if response_part == generated_text and generated_text.startswith(prompt):
+        response_part = generated_text[len(prompt):].strip()
+    
+    # Split into lines for processing
+    lines = response_part.split('\n')
+    clean_lines = []
+    in_main_content = False
+    seen_lines = set()
+    
+    for line in lines:
+        line = line.strip()
+        
+        # Skip empty lines at the beginning
+        if not line and not in_main_content:
+            continue
+            
+        # Stop at common separators and metadata sections
+        if line.startswith('---') or line.startswith('**Word count:**') or \
+           line.startswith('**Hashtags:**') or line.startswith('**Tone:**') or \
+           line.startswith('**Emojis:**') or line.startswith('**Call to action:**') or \
+           line.startswith('**Compliance') or line.startswith('*(Replace ') or \
+           line.startswith('*Short,') or line.startswith('*Note:'):
+            break
+            
+        # Skip reasoning sections (common LLM patterns)
+        if any(phrase in line.lower() for phrase in [
+            'let me', 'i need to', 'first,', 'next,', 'maybe', 'wait,', 
+            'let me check', 'let me count', 'alright,', 'looks good',
+            'i should', 'that should work', 'double-check'
+        ]):
+            continue
+            
+        # Skip lines that look like internal reasoning
+        if line.startswith('Okay,') or line.startswith('That uses') or \
+           line.startswith('Including a hashtag') or line.startswith('Maybe include') or \
+           line.startswith('Wait,') or line.startswith('Let me'):
+            continue
+            
+        # Remove markdown formatting markers
+        line = re.sub(r'^\*\*([^*]+)\*\*$', r'\1', line)  # **text** -> text
+        line = re.sub(r'^\*([^*]+)\*$', r'\1', line)      # *text* -> text
+        
+        # Mark that we've started collecting main content
+        if line and not in_main_content:
+            in_main_content = True
+            
+        # Add unique non-empty lines
+        if line and line not in seen_lines:
+            seen_lines.add(line)
+            clean_lines.append(line)
+    
+    # Join the clean lines
+    result = '\n'.join(clean_lines)
+    
+    # Additional cleanup: remove common prefixes/suffixes
+    result = re.sub(r'^(Here\'s|Here is|This is)\s+', '', result, flags=re.IGNORECASE)
+    result = re.sub(r'\s*\(Replace.*?\).*$', '', result, flags=re.MULTILINE)
+    
+    # Clean up extra whitespace
+    result = re.sub(r'\n\s*\n', '\n', result)  # Multiple newlines -> single
+    result = result.strip()
+    
+    return result
+
 def extract_response_from_generation_old(generated_text, prompt):
     """
     Extract the actual response from the generated text by removing the prompt.

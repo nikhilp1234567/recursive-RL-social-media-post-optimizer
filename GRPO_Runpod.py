@@ -13,7 +13,7 @@ from reward_model import RewardModelTrainer, create_grpo_reward_function
 def train_and_generate_post(
     # model_name="MoonshotAI/Kimi-K2-Instruct",
     # model_name="unsloth/Kimi-K2-Instruct-GGUF",
-    model_name="unsloth/Qwen3-1.7B",
+    model_name="unsloth/Qwen3-8B",
     dataset_path="data.jsonl",
     max_seq_length=2048,
     dtype=None,
@@ -256,7 +256,7 @@ def train_and_generate_post(
     ).to("cuda")
 
     # Generate a response from the model
-    outputs = model.generate(**inputs, max_new_tokens=256, use_cache=True)
+    outputs = model.generate(**inputs, max_new_tokens=800, use_cache=True)
     generated_response = tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
     stage_start = log_stage_time("Text Generation", stage_start)
     

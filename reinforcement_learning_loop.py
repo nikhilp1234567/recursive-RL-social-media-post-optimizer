@@ -3,7 +3,7 @@ import requests
 import time
 from GRPO_Runpod import train_and_generate_post
 # from twitter_functions import post_to_x
-from helper_functions import append_to_dataset, update_post_metrics, extract_response_from_generation, DATASET_FILE, interactive_metric_update
+from helper_functions import append_to_dataset, update_post_metrics, extract_response_from_generation_robust, DATASET_FILE, interactive_metric_update
 
 def run_rl_workflow():
     """
@@ -26,8 +26,9 @@ def run_rl_workflow():
 
         # Step 2: Train the model and generate a new post
         print("Training model and generating new post...")
-        custom_prompt = "You are the social media post generation engine for the twitter account of a company focussed on modelling the ecosystem services of nature, to highlight the return on investment of nature based infastructure for climate risk mitigation and adaptation. Produce an engaging post, ensuring you adhere to twitter's content guidelines."
+        # custom_prompt = "You are the social media post generation engine for the twitter account of a company focussed on modelling the ecosystem services of nature, to highlight the return on investment of nature based infastructure for climate risk mitigation and adaptation. Produce an engaging post, ensuring you adhere to twitter's content guidelines."
         # custom_prompt = "You are the social media post generation engine for the twitter account of a company focussed on modelling the ecosystem services of nature, to highlight the return on investment of nature based infastructure for climate risk mitigation and adaptation. Produce an engaging post, ensuring you adhere to twitter's content guidelines. The post must be within 280 characters."
+        custom_prompt = "You are the social media post generation engine for the twitter account of Panoptic,  a company focussed on modelling the ecosystem services of nature, to highlight the return on investment of nature based infastructure for climate risk mitigation and adaptation. Produce an engaging post, ensuring you adhere to twitter's content guidelines. Keep it short."
         try:
             # This returns the generated text directly, not an HTTP response
             generated_response = train_and_generate_post(
@@ -37,7 +38,7 @@ def run_rl_workflow():
             )
             
             # Step 3: Extract the actual post content from the generated response
-            new_post = extract_response_from_generation(generated_response, custom_prompt)
+            new_post = extract_response_from_generation_robust(generated_response, custom_prompt)
             
             if new_post and new_post.strip():
                 print("\n--- New Post Generated! ---")
