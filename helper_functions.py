@@ -1,9 +1,10 @@
 import json
+from twitter_functions import fetch_metrics_x
 
 # Path to your GRPO training dataset file
 DATASET_FILE = "data.jsonl"
 
-def append_to_dataset(new_post, views=0, likes=0, reposts=0, prompt="failed to gather"):
+def append_to_dataset(new_post, views=0, likes=0, reposts=0, prompt="failed to gather", tweet_id="00000"):
     """
     Append a new post to the dataset file.
     
@@ -13,13 +14,15 @@ def append_to_dataset(new_post, views=0, likes=0, reposts=0, prompt="failed to g
         likes (int): Number of likes (default 0 for new posts)
         reposts (int): Number of reposts (default 0 for new posts)
         prompt (str): The prompt used to generate the post
+        tweet_id (str or int): The tweet ID associated with the post (default 00000)
     """
     new_entry = {
         "prompt": prompt,
         "post": new_post,
         "views": views,
         "likes": likes,
-        "reposts": reposts
+        "reposts": reposts, 
+        "tweet_id": tweet_id
     }
     
     # Append to the JSONL file
@@ -28,45 +31,51 @@ def append_to_dataset(new_post, views=0, likes=0, reposts=0, prompt="failed to g
     
     print(f"New post added to dataset: {DATASET_FILE}")
 
-def update_post_metrics(post_content, views, likes, reposts):
+def update_post_metrics(dataset):
     """
-    Update the metrics for an existing post in the dataset.
+    Update the metrics for the last post in the dataset by fetching current metrics from X.
     
     Args:
-        post_content (str): The content of the post to update
-        views (int): Updated number of views
-        likes (int): Updated number of likes
-        reposts (int): Updated number of reposts
+        dataset (list): The dataset containing posts with tweet_id fields
     
     Returns:
-        bool: True if post was found and updated, False otherwise
+        str: The tweet_id of the updated post, or None if update failed
     """
-    updated = False
-    dataset = []
+    if not dataset:
+        print("Dataset is empty. No posts to update.")
+        return None
     
-    # Read all entries
-    with open(DATASET_FILE, 'r') as f:
-        for line in f:
-            if line.strip():
-                entry = json.loads(line.strip())
-                if entry['post'] == post_content:
-                    entry['views'] = views
-                    entry['likes'] = likes
-                    entry['reposts'] = reposts
-                    updated = True
-                    print(f"Updated metrics for post: {post_content[:50]}...")
-                dataset.append(entry)
+    # Get the last entry from the dataset
+    last_entry = dataset[-1]
+    tweet_id = last_entry.get('tweet_id')
     
-    if updated:
-        # Rewrite the file with updated data
+    if not tweet_id:
+        print("No valid tweet_id found in the last entry.")
+        return None
+    
+    try:
+        # Fetch current metrics from X
+        print(f"Fetching metrics for tweet_id: {tweet_id}")
+        metrics = fetch_metrics_x(str(tweet_id))
+        
+        # Update the last entry with new metrics
+        last_entry['views'] = metrics.get('quotes', 0)  # quotes = impressions/views
+        last_entry['likes'] = metrics.get('likes', 0)
+        last_entry['reposts'] = metrics.get('reposts', 0)
+        
+        print(f"Updated metrics - Views: {last_entry['views']}, Likes: {last_entry['likes']}, Reposts: {last_entry['reposts']}")
+        
+        # Write the updated dataset back to file
         with open(DATASET_FILE, 'w') as f:
             for entry in dataset:
-                f.write('\n' + json.dumps(entry))
-        print("Dataset file updated successfully.")
-    else:
-        print("Post not found in dataset. No updates made.")
-    
-    return updated
+                f.write(json.dumps(entry) + '\n')
+        
+        return str(tweet_id)
+        
+    except Exception as e:
+        print(f"Error fetching metrics for tweet {tweet_id}: {e}")
+        return None
+
 def extract_response_from_generation(generated_text, prompt):
     """
     Extract the actual response from the generated text by removing the prompt.
