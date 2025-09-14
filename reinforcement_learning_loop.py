@@ -47,6 +47,7 @@ def main():
                 print("=============================")
                 
                 # Step 3b: Post the new post to X (non-fatal)
+                tweet_id = "00000"  # Default value in case posting fails
                 try:
                     tweet_id = post_to_x(new_post)
                     print(f"Posted to X successfully. tweet_id={tweet_id}")
