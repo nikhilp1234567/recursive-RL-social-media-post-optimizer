@@ -27,8 +27,9 @@ This project implements a reinforcement learning system that generates engaging 
 ## Data Format
 
 The dataset (`data.jsonl`) uses this format:
+
 ```json
-{"prompt": "Produce an engaging post for twitter", "post": "Your post content here", "views": 42000, "likes": 500, "reposts": 45}
+{ "prompt": "Produce an engaging post for twitter", "post": "Your post content here", "views": 42000, "likes": 500, "reposts": 45 }
 ```
 
 ## Workflow
@@ -112,3 +113,12 @@ response = train_and_generate_post(
 - **CUDA errors**: Ensure you have compatible PyTorch and CUDA versions
 - **Memory issues**: Reduce batch sizes in the training configuration
 - **Generation quality**: Increase training epochs or improve your dataset quality
+
+to
+Remote-SSH: Connect to Host
+
+set up the pod
+
+run it
+
+ge ssh command and input into the remote-ssh thing

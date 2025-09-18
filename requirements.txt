@@ -7,7 +7,6 @@ datasets
 unsloth
 trl
 numpy
-tweepy
 python-dotenv
 torch>=2.0.0
 accelerate>=0.20.0
