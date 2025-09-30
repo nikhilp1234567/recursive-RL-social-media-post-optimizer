@@ -11,8 +11,6 @@ import numpy as np
 from reward_model import RewardModelTrainer, create_grpo_reward_function
 
 def train_and_generate_post(
-    # model_name="MoonshotAI/Kimi-K2-Instruct",
-    # model_name="unsloth/Kimi-K2-Instruct-GGUF",
     model_name="unsloth/Qwen3-8B",
     dataset_path="data.jsonl",
     max_seq_length=2048,
@@ -279,9 +277,4 @@ def train_and_generate_post(
 if __name__ == "__main__":
     # Train and generate with default settings
     response = train_and_generate_post()
-    
-    # Or with custom parameters:
-    # response = train_and_generate_post(
-    #     dataset_path="my_data.json",
-    #     custom_prompt="Write a poem about AI"
-    # )
+

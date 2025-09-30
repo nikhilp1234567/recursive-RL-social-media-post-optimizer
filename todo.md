@@ -1,6 +1,4 @@
-clean up code
-create a script to set up a pod and network storage
-set up the ssh to github on the network storage
-
-set up a running script to set up and terminate a pod once a day
+turn off think for the model
+optimize prompt more for a new use case
+add in function to generate a massive report for the initial prompt?
 add to the script to make it run the runpod thing
