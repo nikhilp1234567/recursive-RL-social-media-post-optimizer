@@ -1,14 +1,10 @@
 import json
-from GRPO_Runpod import train_and_generate_post
-from twitter_functions import post_to_x
-from helper_functions import append_to_dataset, update_post_metrics, extract_response_from_generation_robust, DATASET_FILE
+from helpers.GRPO_Runpod import train_and_generate_post
+from helpers.twitter_helpers import post_to_x
+from helpers.reinforcement_learning_helpers import append_to_dataset, update_post_metrics, extract_response_from_generation_robust, DATASET_FILE
 
-def main():
-    """
-    Handles the entire de novo reinforcement learning workflow.
-    It reads the local dataset, trains both the reward model and GRPO model,
-    and generates a new post that gets added to the dataset.
-    """
+if __name__ == "__main__":
+    print("--- Starting De Novo RL Workflow --- \n")
     try:
         # step 1: grab dataset and update metrics from yesterday's post
         dataset = []
@@ -59,28 +55,19 @@ def main():
                 
                 print("\nPost added to dataset with tweet_id and initial metrics (0 views, 0 likes, 0 reposts).")
                 
-                return new_post
             else:
                 print("Error: Generated response is empty or invalid.")
                 print("Full generated response:", generated_response)
-                return None
 
         except Exception as e:
             print(f"Error during training and generation: {e}")
-            return None
 
     except FileNotFoundError:
         print(f"Error: The file '{DATASET_FILE}' was not found.")
         print("Please ensure you have created this JSONL file in the same directory as the script.")
-        return None
     except json.JSONDecodeError as e:
         print(f"Error: Could not parse '{DATASET_FILE}'. Line: {e}")
         print("Please ensure the file is a valid JSONL file (one JSON object per line).")
-        return None
-
-   
-if __name__ == "__main__":
-    print("--- Starting De Novo RL Workflow --- \n")
-    main()
+    
     print("\n--- Workflow Complete ---")
 
