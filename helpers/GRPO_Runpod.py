@@ -11,7 +11,7 @@ import numpy as np
 from reward_model import RewardModelTrainer, create_grpo_reward_function
 
 def train_and_generate_post(
-    model_name="unsloth/Qwen3-8B",
+    model_name="unsloth/Mistral-7B-Instruct-v0.3",
     dataset_path="data.jsonl",
     max_seq_length=2048,
     dtype=None,
@@ -246,8 +246,17 @@ def train_and_generate_post(
         custom_prompt = input('Produce an engaging post for twitter')
     
     # Format the prompt in Alpaca-style instruction format
-    alpaca_prompt = f"### Instruction:\n{custom_prompt}\n\n### Response:\n"
+    # alpaca_prompt = f"### Instruction:\n{custom_prompt}\n\n### Response:\n"
     
+    messages = [
+    {"role": "system", "content": "Only output the final tweet text. No analysis or labels."},
+    {"role": "user", "content": custom_prompt},
+]
+
+    alpaca_prompt = tokenizer.apply_chat_template(
+        messages, tokenize=False, add_generation_prompt=True
+    )
+
     # Tokenize the prompt and move tensors to GPU
     inputs = tokenizer(
         [alpaca_prompt], return_tensors="pt"
