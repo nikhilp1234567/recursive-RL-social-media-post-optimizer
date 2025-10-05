@@ -13,7 +13,7 @@ if not API_KEY:
     print("❌ Error: RUNPOD_API_KEY environment variable not set.")
     sys.exit(1)
 
-BASH_COMMAND_TO_RUN = "pip install -r requirements.txt && python reinforcement_learning_loop.py"
+BASH_COMMAND_TO_RUN = "git pull && pip install -r requirements.txt && python reinforcement_learning_loop.py"
 
 # --- API Headers ---
 headers = {
