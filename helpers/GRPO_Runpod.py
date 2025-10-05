@@ -8,7 +8,7 @@ from transformers import TrainingArguments
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
-from model_reward import RewardModelTrainer, create_grpo_reward_function
+from helpers.model_reward import RewardModelTrainer, create_grpo_reward_function
 
 def train_and_generate_post(
     model_name="unsloth/Mistral-7B-Instruct-v0.3",

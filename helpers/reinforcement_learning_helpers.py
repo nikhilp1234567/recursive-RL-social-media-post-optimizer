@@ -1,5 +1,5 @@
 import json
-from twitter_helpers import fetch_metrics_x
+from helpers.twitter_helpers import fetch_metrics_x
 
 # Path to your GRPO training dataset file
 DATASET_FILE = "data.jsonl"
