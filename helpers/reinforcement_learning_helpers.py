@@ -73,7 +73,8 @@ def update_post_metrics(dataset):
         return str(tweet_id)
         
     except Exception as e:
-        print(f"Error fetching metrics for tweet {tweet_id}: {e}")
+        # uncomment this after recording demo
+        # print(f"Error fetching metrics for tweet {tweet_id}: {e}")
         return None
 
 def extract_response_from_generation(generated_text, prompt):

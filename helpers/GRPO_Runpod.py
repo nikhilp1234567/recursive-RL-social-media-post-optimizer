@@ -9,6 +9,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from helpers.model_reward import RewardModelTrainer, create_grpo_reward_function
+import os
 
 def train_and_generate_post(
     model_name="unsloth/Mistral-7B-Instruct-v0.3",
@@ -48,7 +49,11 @@ def train_and_generate_post(
     # === 1. Load the pre-trained model with Unsloth ===
     # This loads a HuggingFace model and tokenizer using Unsloth's FastLanguageModel,
     # which is optimized for fast fine-tuning and inference.
-    print("=== 1. Load the pre-trained model with Unsloth ===")
+    print("\n=== 1. Load the pre-trained model with Unsloth ===\n")
+    # if os.path.exists("lora_model"):
+    #     model_name = "lora_model"
+    #     print("Loading model from 'lora_model' directory")
+
     stage_start = time.time()
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=model_name,
@@ -56,12 +61,12 @@ def train_and_generate_post(
         dtype=dtype,
         load_in_4bit=load_in_4bit,
     )
-    stage_start = log_stage_time("Model Loading", stage_start)
+    # stage_start = log_stage_time("Model Loading", stage_start)
 
     # === 2. Prepare the model for parameter-efficient fine-tuning (PEFT) ===
     # This wraps the model with LoRA adapters, which allow efficient fine-tuning
     # by only training a small number of additional parameters.
-    print("=== 2. Prepare the model for PEFT with LoRA adapters ===")
+    print("\n=== 2. Prepare the model for PEFT with LoRA adapters ===\n")
     model = FastLanguageModel.get_peft_model(
         model,
         r=16,  # LoRA rank
@@ -77,11 +82,11 @@ def train_and_generate_post(
         random_state=3407,  # For reproducibility
         use_rslora=False,  # Don't use random sign LoRA
     )
-    stage_start = log_stage_time("PEFT Model Preparation", stage_start)
+    # stage_start = log_stage_time("PEFT Model Preparation", stage_start)
 
     # === 3. Load and format your dataset ===
     # Try to load the dataset from a JSONL file using HuggingFace Datasets.
-    print("=== 3. Load and format dataset ===")
+    print("\n=== 3. Load and format dataset ===\n")
     try:
         dataset = load_dataset("json", data_files=dataset_path, split="train")
     except FileNotFoundError:
@@ -115,7 +120,7 @@ def train_and_generate_post(
     stage_start = log_stage_time("Dataset Loading and Formatting", stage_start)
 
     # === 4. Set up reward function for GRPO ===
-    print("=== 4. Set up reward function for GRPO ===")
+    print("\n=== 4. Train reward model for GRPO ===\n")
     if use_reward_model:
         # If using a learned reward model, train it on the dataset
         print("Training reward model...")
@@ -152,10 +157,10 @@ def train_and_generate_post(
         reward_function = reward_function_dummy
         print("Using dummy reward function for GRPO.")
     
-    stage_start = log_stage_time("Reward Function Setup", stage_start)
+    # stage_start = log_stage_time("Reward Function Setup", stage_start)
     
     # === 5. Set up and run the trainers ===
-    print("=== 5. Set up trainers ===")
+    print("\n=== 5. Set up GRPO trainers ===\n")
     # SFTTrainer: Supervised fine-tuning (not used for training here, but can be used for comparison)
     sft_trainer = SFTTrainer(
         model=model,
@@ -191,7 +196,7 @@ def train_and_generate_post(
             weight_decay=0.1,
             per_device_train_batch_size=4,
             gradient_accumulation_steps=1,
-            num_train_epochs=3,
+            num_train_epochs=1,
             fp16=not torch.cuda.is_bf16_supported(),
             bf16=torch.cuda.is_bf16_supported(),
             logging_steps=1,
@@ -200,11 +205,11 @@ def train_and_generate_post(
             report_to=None,
         ),
     )
-    stage_start = log_stage_time("Trainer Setup", stage_start)
+    # stage_start = log_stage_time("Trainer Setup", stage_start)
 
     # === 6. Start the training process! ===
     # We use the GRPO trainer for RL fine-tuning.
-    print("=== 6. Start the training process ===")
+    print("\n=== 6. Start the training process ===\n")
     trainer = grpo_trainer
     
     print("Starting training...")
@@ -213,20 +218,26 @@ def train_and_generate_post(
 
     # === 7. Save the fine-tuned model (LoRA adapters) ===
     # Save the model and tokenizer to a directory named with today's date
-    print("=== 7. Save the fine-tuned model ===")
+    print("\n=== 7. Save the fine-tuned model ===\n")
     date_str = datetime.date.today().isoformat()
     save_dir = f"lora_model_{date_str}"
-    model.save_pretrained(save_dir)
-    tokenizer.save_pretrained(save_dir)
-    print("Fine-tuning complete. Model saved to 'lora_model' directory.")
+    # model.save_pretrained(model_name)
+    # tokenizer.save_pretrained(model_name)
+    model.save_pretrained_merged(
+        save_dir,
+        tokenizer,
+        # save_method = "merged_16bit"
+    )
+    print(f"Fine-tuning complete. Model saved to '{save_dir}' directory.")
     stage_start = log_stage_time("Model Saving", stage_start)
 
     # === 8. Run inference with the fine-tuned model ===
-    print("=== 8. Run inference with the fine-tuned model ===")
+    print("\n=== 8. Run inference with the fine-tuned model ===\n")
     stage_start = time.time()
-    # Reload the base model and tokenizer (to ensure a clean state)
+    # Load the updated model for inference
     model, tokenizer = FastLanguageModel.from_pretrained(
-        model_name=model_name,
+        # model_name=model_name,
+        model_name=save_dir,
         max_seq_length=max_seq_length,
         dtype=dtype,
         load_in_4bit=load_in_4bit,
@@ -265,21 +276,21 @@ def train_and_generate_post(
     # Generate a response from the model
     outputs = model.generate(**inputs, max_new_tokens=800, use_cache=True)
     generated_response = tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
-    stage_start = log_stage_time("Text Generation", stage_start)
+    # stage_start = log_stage_time("Text Generation", stage_start)
     
     # Print timing summary
-    total_time = time.time() - start_time
-    print("\n" + "="*60)
-    print("🕒 TIMING SUMMARY")
-    print("="*60)
-    for stage, duration in stage_times.items():
-        percentage = (duration / total_time) * 100
-        print(f"{stage:<30}: {duration:>8.2f}s ({percentage:>5.1f}%)")
-    print("-"*60)
-    print(f"{'Total Execution Time':<30}: {total_time:>8.2f}s (100.0%)")
-    print("="*60)
+    # total_time = time.time() - start_time
+    # print("\n" + "="*60)
+    # print("🕒 TIMING SUMMARY")
+    # print("="*60)
+    # for stage, duration in stage_times.items():
+    #     percentage = (duration / total_time) * 100
+    #     print(f"{stage:<30}: {duration:>8.2f}s ({percentage:>5.1f}%)")
+    # print("-"*60)
+    # print(f"{'Total Execution Time':<30}: {total_time:>8.2f}s (100.0%)")
+    # print("="*60)
 
-    stage_start = log_stage_time("Model Reloading for Inference", stage_start)
+    # stage_start = log_stage_time("Model Reloading for Inference", stage_start)
     return generated_response
 
 # Example usage:

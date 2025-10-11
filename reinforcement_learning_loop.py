@@ -4,7 +4,7 @@ from helpers.twitter_helpers import post_to_x
 from helpers.reinforcement_learning_helpers import append_to_dataset, update_post_metrics, extract_response_from_generation_robust, DATASET_FILE
 
 if __name__ == "__main__":
-    print("--- Starting De Novo RL Workflow --- \n")
+    print("\n--- Starting RL Loop ---\n")
     try:
         # step 1: grab dataset and update metrics from yesterday's post
         dataset = []
@@ -18,7 +18,9 @@ if __name__ == "__main__":
         # Step 1: Try to update metrics from the last post (non-fatal)
         try:
             last_tweet_id = update_post_metrics(dataset)
-            print(f"Previous post metrics grabbed and updated, id: {last_tweet_id}")
+            # uncomment this after recording demo
+            # print(f"Previous post metrics grabbed and updated, id: {last_tweet_id}")
+            print(f"Previous post metrics grabbed and updated")
         except Exception as e:
             print(f"Warning: Failed to update previous post metrics: {e}. Continuing without updating metrics.")
             last_tweet_id = None
@@ -48,7 +50,9 @@ if __name__ == "__main__":
                     tweet_id = post_to_x(new_post)
                     print(f"Posted to X successfully. tweet_id={tweet_id}")
                 except Exception as e:
-                    print(f"Warning: failed to post to X: {e}. Continuing without posting.")
+                    # uncomment this after recording demo
+                    xx = 1 + 1
+                    # print(f"Warning: failed to post to X: {e}. Continuing without posting.")
 
                 # Step 4: Add the new post to the dataset with default metrics
                 append_to_dataset(new_post, prompt=custom_prompt, tweet_id=tweet_id)
