@@ -13,7 +13,7 @@ if __name__ == "__main__":
         if result:
             public_ip, port_mappings = result
             print(f'Pod is ready! IP: {public_ip}, Ports: {port_mappings}')
-            command = "cd /workspace/RL_AI && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt && python reinforcement_learning_loop.py"
+            command = "cp -a /workspace/.ssh/. /root/.ssh/ && chmod 600 /root/.ssh/id_ed25519 && cd /workspace/RL_AI && git pull"
             execute_command(public_ip, port_mappings, command)
 
     except Exception as e:
