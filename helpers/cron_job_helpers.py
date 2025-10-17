@@ -2,10 +2,10 @@ import requests
 import os
 import time
 import sys
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from pathlib import Path
 
-load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
+load_dotenv(dotenv_path=find_dotenv())
 API_KEY = os.getenv("RUNPOD_API_KEY")
 BASE_URL = "https://rest.runpod.io/v1"
 
@@ -13,7 +13,7 @@ if not API_KEY:
     print("❌ Error: RUNPOD_API_KEY environment variable not set.")
     sys.exit(1)
 
-BASH_COMMAND_TO_RUN = "pip install -r requirements.txt && python reinforcement_learning_loop.py"
+BASH_COMMAND_TO_RUN = "cp -a /workspace/.ssh/. /root/.ssh/ && chmod 600 /root/.ssh/id_ed25519 && cd /workspace/RL_AI && git pull && pip install -r requirements.txt && python reinforcement_learning_loop.py"
 
 # --- API Headers ---
 headers = {
@@ -50,7 +50,8 @@ def create_pod():
     if response.status_code == 201:
         pod_data = response.json()
         print(f"✅ Pod creation initiated. Pod ID: {pod_data['id']}")
-        return pod_data['id']
+        print(response.json())
+        return pod_data
     else:
         print(f"❌ Error creating pod: {response.status_code}")
         print(response.json())
@@ -98,6 +99,7 @@ def execute_command(pod_id, command):
     """Executes a bash command on the specified pod."""
     # The 'runsync' endpoint runs a command and waits for it to complete.
     url = f"{BASE_URL}/pods/{pod_id}/runsync"
+    # url = f"https://api.runpod.ai/v2/{pod_id}/runsync"
     
     payload = {
         "input": {

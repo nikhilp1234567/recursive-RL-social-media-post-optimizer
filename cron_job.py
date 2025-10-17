@@ -1,4 +1,4 @@
-from .helpers.cron_job_helpers import terminate_pod, execute_command, create_pod, wait_for_pod_running, BASH_COMMAND_TO_RUN
+from helpers.cron_job_helpers import terminate_pod, execute_command, create_pod, wait_for_pod_running, BASH_COMMAND_TO_RUN
 
 # --- Main Workflow ---
 if __name__ == "__main__":
@@ -17,7 +17,7 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"An unexpected error occurred during the workflow: {e}")
     
-    finally:
+    # finally:
         # 4. Terminate the pod, regardless of whether the command succeeded or failed
-        if pod_id:
-            terminate_pod(pod_id)
+        # if pod_id:
+            # terminate_pod(pod_id)
