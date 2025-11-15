@@ -76,35 +76,7 @@ def update_post_metrics(dataset):
         # uncomment this after recording demo
         # print(f"Error fetching metrics for tweet {tweet_id}: {e}")
         return None
-
-def extract_response_from_generation(generated_text, prompt):
-    """
-    Extract the actual response from the generated text by removing the prompt.
-    """
-    # Remove the instruction format and extract just the response
-    if "### Response:" in generated_text:
-        response_part = generated_text.split("### Response:")[-1].strip()
-        
-        # Additional cleanup: remove any repeated sections
-        lines = response_part.split('\n')
-        seen_lines = set()
-        clean_lines = []
-        
-        for line in lines:
-            line = line.strip()
-            if line and line not in seen_lines:
-                seen_lines.add(line)
-                clean_lines.append(line)
-            elif line == "---":  # Stop at separators
-                break
-                
-        return '\n'.join(clean_lines)
-    else:
-        # Fallback: try to remove the prompt from the beginning
-        if generated_text.startswith(prompt):
-            return generated_text[len(prompt):].strip()
-        return generated_text.strip()
-        
+      
 def extract_response_from_generation_robust(generated_text, prompt):
     """
     Robust extraction of the actual response from the generated text by removing 
@@ -193,27 +165,6 @@ def extract_response_from_generation_robust(generated_text, prompt):
     result = result.strip()
     
     return result
-
-def extract_response_from_generation_old(generated_text, prompt):
-    """
-    Extract the actual response from the generated text by removing the prompt.
-    
-    Args:
-        generated_text (str): The full generated text
-        prompt (str): The original prompt
-    
-    Returns:
-        str: The extracted response
-    """
-    # Remove the instruction format and extract just the response
-    if "### Response:" in generated_text:
-        response_part = generated_text.split("### Response:")[-1].strip()
-        return response_part
-    else:
-        # Fallback: try to remove the prompt from the beginning
-        if generated_text.startswith(prompt):
-            return generated_text[len(prompt):].strip()
-        return generated_text.strip()
 
 def interactive_metric_update():
     """
