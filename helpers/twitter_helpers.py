@@ -1,5 +1,4 @@
-import os
-import requests
+import os, requests
 
 API_BASE = "https://api.x.com/2"
 

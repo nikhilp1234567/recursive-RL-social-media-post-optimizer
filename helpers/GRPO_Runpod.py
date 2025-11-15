@@ -1,19 +1,16 @@
-import torch
-import datetime
-import time
+import torch, os, datetime, time, numpy as np
 from datasets import load_dataset
 from unsloth import FastLanguageModel
 from trl import SFTTrainer, GRPOTrainer, GRPOConfig
 from transformers import TrainingArguments
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
 from helpers.model_reward import RewardModelTrainer, create_grpo_reward_function
-import os
+from reinforcement_learning_helpers import DATASET_FILE
 
 def train_and_generate_post(
     model_name="unsloth/Mistral-7B-Instruct-v0.3",
-    dataset_path="data.jsonl",
+    dataset_path=DATASET_FILE,
     max_seq_length=2048,
     dtype=None,
     load_in_4bit=True,

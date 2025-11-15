@@ -1,15 +1,4 @@
-MVP plan to make the AI publicity agent good (simple, staged) 0. update the git pull
-
-0. method to ssh
-   this is complex but maybe create a ssh key using standard keygen, then copy the whole directory to workspace's one, then when you need to do subsequent git pulls, you can copy the directory back to the right place and then do git pull.
-
-1. Stabilize reliability and output quality
-
-- Replace base model in `helpers/GRPO_Runpod.py` with another model completely, keep your RL code intact for later.
-- Enforce “no reasoning traces”: add strict system prompt and stop sequences; keep using `extract_response_from_generation_robust`.
-- Add retry/backoff and timeouts for posting in `helpers/twitter_helpers.py`. Log failures with response bodies.
-
-2. Add a multi-step prompt pipeline (no training needed)
+1. Add a multi-step prompt pipeline (no training needed)
 
 - Trend report: fetch top 5–10 niche topics (Twitter/X search or public trend APIs).
 - Content ideas: generate 10 tweet angles from trends + brand context.
