@@ -18,8 +18,7 @@ if __name__ == "__main__":
         # Step 1: Try to update metrics from the last post (non-fatal)
         try:
             last_tweet_id = update_post_metrics(dataset)
-            # uncomment this after recording demo
-            # print(f"Previous post metrics grabbed and updated, id: {last_tweet_id}")
+            print(f"Previous post metrics grabbed and updated, id: {last_tweet_id}")
             print(f"Previous post metrics grabbed and updated")
         except Exception as e:
             print(f"Warning: Failed to update previous post metrics: {e}. Continuing without updating metrics.")

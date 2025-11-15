@@ -41,7 +41,7 @@ Report Formatting: The entire output must be a single, cohesive document.
 - For a Business: Core Brand Philosophy: What are the foundational beliefs that guide the company's actions and product development?
 - Inferred Business Objectives: What are the primary business goals the brand can support? (e.g., lead generation, talent attraction, market leadership, community building).
 
-4. Audience Personas Develop three distinct audience personas. For each persona, provide the following in detail:
+4. Audience PersonasDevelop three distinct audience personas. For each persona, provide the following in detail:
 
 - A. Persona Profile: A rich description of who they are.
 - B. Core Pain Points: List 5-7 key problems, phrased in the first person ("I struggle with...").
@@ -51,7 +51,7 @@ Report Formatting: The entire output must be a single, cohesive document.
 - F. Existing Solutions and Gaps: What they use now and what's missing.
 - G. Strategic Angle & Content Examples: How should the subject position themselves to this persona? Provide three specific, compelling post ideas as examples.
 
-5. Brand Pillars & Value Proposition Identify three core, evocative Brand Pillars. For each pillar:
+5. Brand Pillars & Value PropositionIdentify three core, evocative Brand Pillars. For each pillar:
 
 - Name: Give the pillar a memorable name (e.g., "The Unfiltered Builder," "Pragmatic Innovation").
 - Evidence & Anecdote: Provide a specific example or quote from the source material that proves this pillar exists.
@@ -76,7 +76,7 @@ Report Formatting: The entire output must be a single, cohesive document.
 - Part B - Eight-Dimension Style Matrix: Create a Markdown table scoring the subject's style from 1-10 on the following dimensions: Tone (formal ↔ informal), Authenticity, Specificity, Humor, Clarity, Colloquialism, Openness, and Reflective Depth. Justify each score with a direct quote.
 - Part C - Top Representative Content: List up to 10 of the subject's most representative content pieces. For each, include: the URL, engagement metrics (if available), the full content (or a key excerpt), and a brief analysis of why it exemplifies their voice and style.
 
-9. Life-Story / Company History Timeline Create a chronological timeline of key milestones. For each milestone:
+9. Life-Story / Company History TimelineCreate a chronological timeline of key milestones. For each milestone:
 
 - Narrative: Write a brief paragraph summarizing the event, its challenges, and its outcomes.
 - Key Lesson for Future Content: Extract a core lesson or story angle from that milestone that can be used in future content to build the brand.
