@@ -10,4 +10,5 @@ numpy
 python-dotenv
 torch>=2.0.0
 accelerate>=0.20.0
-openai
+google-genai
+python-dotenv
