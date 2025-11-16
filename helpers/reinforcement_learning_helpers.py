@@ -1,8 +1,8 @@
 import json
-from helpers.twitter_helpers import fetch_metrics_x
+from twitter_helpers import fetch_metrics_x
 
 # Path to your GRPO training dataset file
-DATASET_FILE = "data.jsonl"
+DATASET_FILE = "data/dataset.jsonl"
 
 def append_to_dataset(new_post, views=0, likes=0, reposts=0, prompt="failed to gather", tweet_id="00000"):
     """

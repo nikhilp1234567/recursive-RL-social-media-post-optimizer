@@ -5,7 +5,7 @@ from trl import SFTTrainer, GRPOTrainer, GRPOConfig
 from transformers import TrainingArguments
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-from helpers.model_reward import RewardModelTrainer, create_grpo_reward_function
+from model_reward import RewardModelTrainer, create_grpo_reward_function
 from reinforcement_learning_helpers import DATASET_FILE
 
 def train_and_generate_post(
@@ -251,7 +251,7 @@ def train_and_generate_post(
     
     # If no custom prompt is provided, ask the user for one
     if custom_prompt is None:
-        custom_prompt = input('Produce an engaging post for twitter')
+        custom_prompt = 'Produce an engaging post for twitter'
     
     # Format the prompt in Alpaca-style instruction format
     # alpaca_prompt = f"### Instruction:\n{custom_prompt}\n\n### Response:\n"
@@ -294,4 +294,6 @@ def train_and_generate_post(
 if __name__ == "__main__":
     # Train and generate with default settings
     response = train_and_generate_post()
+    print("\n=== Generated Response ===\n")
+    print(response)
 
