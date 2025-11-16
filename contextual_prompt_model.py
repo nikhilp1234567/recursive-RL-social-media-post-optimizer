@@ -7,7 +7,8 @@ from google.genai import types
 from dotenv import load_dotenv
 
 load_dotenv()
-
+MODEL = "gemini-2.5-pro"
+BACKUP_MODEL = "gemini-2.5-flash"
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY environment variable is not set")
@@ -37,12 +38,20 @@ except IOError as e:
 # Step 1: Generate trends
 try:
     trends_response = client.models.generate_content(
-        model="gemini-2.5-pro",
+        model=MODEL,
         contents=f"{brand_report}\n\nGenerate 5-7 current trends/topics/events relevant to this brand that would make good social media posts for the twitter account of a . List them with no other text. ensure you use the above brand report to accurately target the industry and landscape of the brand.",
         config=config,
     )
 except Exception as e:
-    raise RuntimeError(f"Failed to generate trends from model: {str(e)}")
+    print(f"Primary model failed, trying backup model: {str(e)}")
+    try:
+        trends_response = client.models.generate_content(
+            model=BACKUP_MODEL,
+            contents=f"{brand_report}\n\nGenerate 5-7 current trends/topics/events relevant to this brand that would make good social media posts for the twitter account of a . List them with no other text. ensure you use the above brand report to accurately target the industry and landscape of the brand.",
+            config=config,
+        )
+    except Exception as e:
+        raise RuntimeError(f"Failed to generate trends from both models: {str(e)}")
 
 try:
     trends = trends_response.text
@@ -69,12 +78,20 @@ except Exception as e:
 # Step 2: Pick best trend, create prompt and save
 try:
     final_prompt_response = client.models.generate_content(
-        model="gemini-2.5-pro",
+        model=MODEL,
         contents=f"Brand Report:\n{brand_report}\n\nTrends:\n{trends}\n\nPick the best current trend/topic/event and create a detailed prompt for generating a social media post that aligns with the brand voice. output only the prompt with no other text.",
         config=config,
     )
 except Exception as e:
-    raise RuntimeError(f"Failed to generate final prompt from model: {str(e)}")
+    print(f"Primary model failed, trying backup model: {str(e)}")
+    try:
+        final_prompt_response = client.models.generate_content(
+            model=BACKUP_MODEL,
+            contents=f"Brand Report:\n{brand_report}\n\nTrends:\n{trends}\n\nPick the best current trend/topic/event and create a detailed prompt for generating a social media post that aligns with the brand voice. output only the prompt with no other text.",
+            config=config,
+        )
+    except Exception as e:
+        raise RuntimeError(f"Failed to generate final prompt from both models: {str(e)}")
 
 try:
     final_prompt = final_prompt_response.text
