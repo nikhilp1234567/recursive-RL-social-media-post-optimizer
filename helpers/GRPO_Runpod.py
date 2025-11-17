@@ -6,7 +6,7 @@ from transformers import TrainingArguments
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from helpers.model_reward import RewardModelTrainer, create_grpo_reward_function
-from helpers.reinforcement_learning_helpers import DATASET_FILE
+from helpers.paths import DATASET_FILE
 
 def train_and_generate_post(
     model_name="unsloth/Mistral-7B-Instruct-v0.3",

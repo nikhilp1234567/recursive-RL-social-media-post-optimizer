@@ -1,4 +1,4 @@
-from helpers.reinforcement_learning_helpers import DATASET_FILE
+from helpers.paths import DATASET_FILE
 import json
 from google import genai
 import os

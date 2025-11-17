@@ -17,7 +17,8 @@ def add_to_dataset(prompt: str, post: str, dataset_path: str = "data/dataset.jso
         "views": 0,
         "likes": 0,
         "reposts": 0,
-        "tweet_id": "0"
+        "tweet_id": "0",
+        "posted": False
     }
     
     # Append to the dataset file
