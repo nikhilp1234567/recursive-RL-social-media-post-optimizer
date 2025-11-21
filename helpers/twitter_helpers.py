@@ -48,7 +48,7 @@ def post_to_x(post):
     return response
 
 
-def post_all_unposted(dataset_path="/workspace/RL_AI/data/dataset.jsonl"):
+def post_all_unposted(dataset_path="/workspace/RL_AI/data_africfood/dataset.jsonl"):
     """
     Posts all unposted tweets from dataset.jsonl and updates the dataset with tweet IDs.
     
@@ -100,10 +100,11 @@ def get_x_metrics(tweet_id):
         tweet_fields=["public_metrics"]
     )
 
-    print(response)
+    print("full response:", response)
     data = response.data
     
     public = data["public_metrics"]
+    print("public metrics:", public)
 
     # Views depend on your plan / access level.
     views = 0

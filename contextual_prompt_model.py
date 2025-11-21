@@ -26,7 +26,7 @@ config = types.GenerateContentConfig(
     tools=[grounding_tool]
 )
 
-report_path = os.path.join(os.path.dirname(__file__), "specific_brand_report.txt")
+report_path = os.path.join(os.path.dirname(__file__), "specific_brand_report_africfood.txt")
 try:
     with open(report_path, "r", encoding="utf-8") as f:
         brand_report = f.read()
@@ -59,7 +59,7 @@ except AttributeError:
     raise ValueError("Model response does not contain text attribute. Response may have been blocked or failed.")
 
 # Save trends to topics.jsonl
-topics_output_path = os.path.join(os.path.dirname(__file__), "data", "topics.jsonl")
+topics_output_path = os.path.join(os.path.dirname(__file__), "data_africfood", "topics.jsonl")
 os.makedirs(os.path.dirname(topics_output_path), exist_ok=True)
 
 try:
@@ -98,7 +98,7 @@ try:
 except AttributeError:
     raise ValueError("Model response does not contain text attribute. Response may have been blocked or failed.")
 
-output_path = os.path.join(os.path.dirname(__file__), "data", "prompts.jsonl")
+output_path = os.path.join(os.path.dirname(__file__), "data_africfood", "prompts.jsonl")
 id = str(uuid.uuid4())
 
 # Ensure data directory exists

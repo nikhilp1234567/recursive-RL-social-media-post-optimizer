@@ -18,7 +18,7 @@ config = types.GenerateContentConfig(
 
 # Correctly load context files, excluding the main brand report
 script_dir = os.path.dirname(os.path.abspath(__file__))
-context_path = os.path.join(script_dir, "context")
+context_path = os.path.join(script_dir, "context_africfood")
 brand_file = os.path.join(context_path, "Brand Strategy Report File.md")
 
 all_files = glob.glob(os.path.join(context_path, "*.txt")) + glob.glob(os.path.join(context_path, "*.md"))

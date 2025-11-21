@@ -4,7 +4,7 @@ from helpers.quality_control import clean_generated_post
 from helpers.dataset_helpers import add_to_dataset
 
 # Load a prompt from the prompts file
-with open('data/prompts.jsonl', 'r') as f:
+with open('data_africfood/prompts.jsonl', 'r') as f:
     prompt_data = json.loads(f.readlines()[-1])
     custom_prompt = prompt_data['prompt']
 
@@ -13,7 +13,7 @@ print("Starting model training and post generation...")
 print(f"\nUsing prompt:\n{custom_prompt[:200]}...\n")
 print("="*60)
 response = train_and_generate_post(
-    dataset_path='data/dataset.jsonl',
+    dataset_path='data_africfood/dataset.jsonl',
     custom_prompt=custom_prompt,
     use_reward_model=True
 )

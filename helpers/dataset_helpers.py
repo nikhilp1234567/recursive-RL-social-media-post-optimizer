@@ -2,7 +2,7 @@ import json
 import os
 
 
-def add_to_dataset(prompt: str, post: str, dataset_path: str = "data/dataset.jsonl") -> None:
+def add_to_dataset(prompt: str, post: str, dataset_path: str = "data_africfood/dataset.jsonl") -> None:
     """
     Add a new entry to the dataset.jsonl file.
     
